@@ -14,10 +14,7 @@ const (
 
 type CRMService struct {
 	uid int64
-}
-
-type PlayerTotal struct {
-	uid int64 `bson:"uid"`
+	kv  consul.KV
 }
 
 func (s *CRMService) Init(url string) {
@@ -44,11 +41,13 @@ func (s *CRMService) Init(url string) {
 }
 
 func (s *CRMService) Signup(c context.Context, in *crm_api.SignupReq, out *crm_api.SignupResponse) error {
-	if s.uid <= PLAYER_START {
-		s.uid = PLAYER_START
-	}
-
 	out.ID = s.uid
+	s.uid += 1
+
+	newUID := string(s.uid)
+
+	d := consul.KVPair{Key: "rpg/latestID", Value: []byte(newUID)}
+	s.kv.Put(&d, nil)
 
 	return nil
 }

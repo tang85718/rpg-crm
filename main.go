@@ -8,7 +8,6 @@ import (
 )
 
 func main() {
-
 	service := micro.NewService(
 		micro.Name("crm"),
 	)
