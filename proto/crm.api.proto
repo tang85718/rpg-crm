@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+service CRMService {
+    rpc Signup (SignupReq) returns (SignupResponse) {};
+}
+
+message SignupReq {
+
+}
+
+message SignupResponse {
+    int64 ID = 1;
+}
