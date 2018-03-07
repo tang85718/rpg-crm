@@ -13,7 +13,7 @@ func main() {
 	)
 
 	crm := new(crm.CRMService)
-	crm.Init("localhost:8500")
+	crm.Init("localhost:8500", "localhost")
 
 	service.Init()
 	crm_api.RegisterCRMServiceHandler(service.Server(), crm)
