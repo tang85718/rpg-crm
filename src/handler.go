@@ -8,13 +8,9 @@ import (
 	"strconv"
 )
 
-const (
-	PLAYER_START = 10000
-)
-
 type CRMService struct {
 	uid int64
-	kv  consul.KV
+	kv  *consul.KV
 }
 
 func (s *CRMService) Init(url string) {
@@ -26,8 +22,8 @@ func (s *CRMService) Init(url string) {
 		panic(err)
 	}
 
-	kv := c.KV()
-	p, _, err := kv.Get("rpg/latestID", nil)
+	s.kv = c.KV()
+	p, _, err := s.kv.Get("rpg/latestID", nil)
 	if err != nil {
 		panic(err)
 	}
@@ -41,13 +37,14 @@ func (s *CRMService) Init(url string) {
 }
 
 func (s *CRMService) Signup(c context.Context, in *crm_api.SignupReq, out *crm_api.SignupResponse) error {
-	out.ID = s.uid
-	s.uid += 1
+	out.ID = string(s.uid)
+	out.Token = string(s.uid)
 
+	s.uid += 1
 	newUID := string(s.uid)
 
-	d := consul.KVPair{Key: "rpg/latestID", Value: []byte(newUID)}
-	s.kv.Put(&d, nil)
+	d := &consul.KVPair{Key: "rpg/latestID", Value: []byte(newUID)}
+	s.kv.Put(d, nil)
 
 	return nil
 }

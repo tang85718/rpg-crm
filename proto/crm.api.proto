@@ -9,5 +9,6 @@ message SignupReq {
 }
 
 message SignupResponse {
-    int64 ID = 1;
+    string ID = 1;
+    string token = 2;
 }
