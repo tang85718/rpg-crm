@@ -7,7 +7,6 @@ import (
 	consul "github.com/hashicorp/consul/api"
 	"strconv"
 	"gopkg.in/mgo.v2"
-	"github.com/pborman/uuid"
 	"time"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -51,20 +50,16 @@ func (s *CRMService) Init(consulURL string, mgoUrl string) {
 }
 
 func (s *CRMService) Signup(c context.Context, in *crm_api.SignupReq, out *crm_api.SignupResponse) error {
+	id := bson.NewObjectId()
+
 	out.ID = strconv.FormatInt(s.pIndex, 10)
-	out.Token = uuid.NewUUID().String()
-
-	s.pIndex += 1
-	newUID := strconv.FormatInt(s.pIndex, 10)
-
-	d := &consul.KVPair{Key: "rpg/latestID", Value: []byte(newUID)}
-	s.kv.Put(d, nil)
+	out.Token = id.Hex()
 
 	now := time.Now()
 	player := &Player{
-		ID:         bson.NewObjectId(),
+		ID:         id,
 		DisplayID:  out.ID,
-		Token:      out.Token,
+		Token:      id.Hex(),
 		CreateTime: now,
 		UpdateTime: now,
 	}
@@ -75,12 +70,11 @@ func (s *CRMService) Signup(c context.Context, in *crm_api.SignupReq, out *crm_a
 		return err
 	}
 
-	//mc.Insert(bson.M{
-	//	"id":          out.ID,
-	//	"token":       out.Token,
-	//	"create_time": now,
-	//	"update_time": now,
-	//})
+	s.pIndex += 1
+	newUID := strconv.FormatInt(s.pIndex, 10)
+
+	d := &consul.KVPair{Key: "rpg/latestID", Value: []byte(newUID)}
+	s.kv.Put(d, nil)
 
 	//todo: create elastic diary
 
