@@ -2,13 +2,14 @@ package crm
 
 import (
 	"golang.org/x/net/context"
-	"proto"
+	"proto/crm"
 	"fmt"
 	consul "github.com/hashicorp/consul/api"
 	"strconv"
 	"gopkg.in/mgo.v2"
-	"time"
 	"gopkg.in/mgo.v2/bson"
+	"time"
+	"errors"
 )
 
 type CRMService struct {
@@ -45,7 +46,6 @@ func (s *CRMService) Init(consulURL string, mgoUrl string) {
 	}
 
 	s.mgo.SetMode(mgo.Monotonic, true)
-
 	fmt.Println("[CRM] 连接 mongo 成功")
 }
 
@@ -64,7 +64,7 @@ func (s *CRMService) Signup(c context.Context, in *crm_api.SignupReq, out *crm_a
 		UpdateTime: now,
 	}
 
-	mc := s.mgo.DB("crm").C("player")
+	mc := s.mgo.DB(PlayerDB).C(PlayerCOL)
 	err := mc.Insert(player)
 	if err != nil {
 		return err
@@ -77,6 +77,32 @@ func (s *CRMService) Signup(c context.Context, in *crm_api.SignupReq, out *crm_a
 	s.kv.Put(d, nil)
 
 	//todo: create elastic diary
+	return nil
+}
 
+func (s *CRMService) BindPhone(c context.Context, in *crm_api.BindPhoneReq, out *crm_api.BindPhoneResponse) error {
+
+	return nil
+}
+
+func (s *CRMService) MakeActor(c context.Context, in *crm_api.MakeActorReq, out *crm_api.MakeActorRsp) error {
+	playerCol := s.mgo.DB(PlayerDB).C(PlayerCOL)
+	player := Player{}
+	err := playerCol.Find(bson.M{"token": in.Token}).One(&player)
+	if err != nil {
+		return err
+	}
+
+	actorCOL := s.mgo.DB(ActorDB).C(ActorCOL)
+	count, err := actorCOL.Find(bson.M{"player_token": player.Token}).Count()
+
+	if count > 0 {
+		return errors.New("不允许创建超过1个角色")
+	}
+
+	actor := Charactor{Name: in.Name, HP: 5, Energy: 0, EnergyType: 0}
+	actorCOL.Insert(&actor)
+
+	fmt.Printf("创建新角色%s, 属于玩家%s(%s)\n", in.Name, player.DisplayID, player.Token)
 	return nil
 }

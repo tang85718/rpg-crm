@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/micro/go-micro"
 	"fmt"
-	"proto"
+	"proto/crm"
 	"./src"
 )
 

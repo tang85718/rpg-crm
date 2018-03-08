@@ -5,6 +5,11 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+const (
+	PlayerDB  = "crm"
+	PlayerCOL = "player"
+)
+
 type Player struct {
 	ID         bson.ObjectId `bson:"_id,omitempty"`
 	DisplayID  string        `bson:"id"`
