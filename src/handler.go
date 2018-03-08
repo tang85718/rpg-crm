@@ -12,6 +12,12 @@ import (
 	"errors"
 )
 
+const (
+	CRM_DB    = "crm"
+	PlayerCOL = "player"
+	ActorCOL  = "actors"
+)
+
 type CRMService struct {
 	pIndex int64
 	kv     *consul.KV
@@ -49,8 +55,10 @@ func (s *CRMService) Init(consulURL string, mgoUrl string) {
 	fmt.Println("[CRM] 连接 mongo 成功")
 }
 
-func (s *CRMService) Signup(c context.Context, in *crm_api.SignupReq, out *crm_api.SignupResponse) error {
+func (s *CRMService) Signup(c context.Context, in *crm_api.SignupReq) (*crm_api.SignupResponse, error) {
 	id := bson.NewObjectId()
+
+	out := new(crm_api.SignupResponse)
 
 	out.ID = strconv.FormatInt(s.pIndex, 10)
 	out.Token = id.Hex()
@@ -64,10 +72,10 @@ func (s *CRMService) Signup(c context.Context, in *crm_api.SignupReq, out *crm_a
 		UpdateTime: now,
 	}
 
-	mc := s.mgo.DB(PlayerDB).C(PlayerCOL)
+	mc := s.mgo.DB(CRM_DB).C(PlayerCOL)
 	err := mc.Insert(player)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	s.pIndex += 1
@@ -77,32 +85,31 @@ func (s *CRMService) Signup(c context.Context, in *crm_api.SignupReq, out *crm_a
 	s.kv.Put(d, nil)
 
 	//todo: create elastic diary
-	return nil
+	return out, nil
 }
 
-func (s *CRMService) BindPhone(c context.Context, in *crm_api.BindPhoneReq, out *crm_api.BindPhoneResponse) error {
-
-	return nil
+func (s *CRMService) BindPhone(c context.Context, in *crm_api.BindPhoneReq) (*crm_api.BindPhoneResponse, error) {
+	return nil, nil
 }
 
-func (s *CRMService) MakeActor(c context.Context, in *crm_api.MakeActorReq, out *crm_api.MakeActorRsp) error {
-	playerCol := s.mgo.DB(PlayerDB).C(PlayerCOL)
+func (s *CRMService) MakeActor(c context.Context, in *crm_api.MakeActorReq) (*crm_api.MakeActorRsp, error) {
+	playerCol := s.mgo.DB(CRM_DB).C(PlayerCOL)
 	player := Player{}
 	err := playerCol.Find(bson.M{"token": in.Token}).One(&player)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	actorCOL := s.mgo.DB(ActorDB).C(ActorCOL)
+	actorCOL := s.mgo.DB(CRM_DB).C(ActorCOL)
 	count, err := actorCOL.Find(bson.M{"player_token": player.Token}).Count()
 
 	if count > 0 {
-		return errors.New("不允许创建超过1个角色")
+		return nil, errors.New("不允许创建超过1个角色")
 	}
 
-	actor := Charactor{Name: in.Name, HP: 5, Energy: 0, EnergyType: 0}
+	actor := Charactor{PlayerToken: in.Token, Name: in.Name, HP: 5, Energy: 0, EnergyType: 0}
 	actorCOL.Insert(&actor)
 
 	fmt.Printf("创建新角色%s, 属于玩家%s(%s)\n", in.Name, player.DisplayID, player.Token)
-	return nil
+	return nil, nil
 }

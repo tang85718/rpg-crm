@@ -2,11 +2,6 @@ package crm
 
 import "gopkg.in/mgo.v2/bson"
 
-const (
-	ActorDB  = "crm"
-	ActorCOL = "actors"
-)
-
 type Charactor struct {
 	ID          bson.ObjectId `bson:"_id,omitempty"`
 	PlayerToken string        `bson:"player_token"`

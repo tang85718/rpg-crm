@@ -1,24 +1,38 @@
 package main
 
 import (
-	"github.com/micro/go-micro"
 	"fmt"
 	"proto/crm"
 	"./src"
+	"net"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
-	service := micro.NewService(
-		micro.Name("crm"),
-	)
+	lis, err := net.Listen("tcp", ":3000")
+	if err != nil {
+		panic(err)
+	}
 
-	crm := new(crm.CRMService)
-	crm.Init("localhost:8500", "localhost")
+	s := grpc.NewServer()
+	crmService := new(crm.CRMService)
+	crmService.Init("localhost:8500", "localhost")
 
-	service.Init()
-	crm_api.RegisterCRMServiceHandler(service.Server(), crm)
+	crm_api.RegisterCRMServiceServer(s, crmService)
 
-	if err := service.Run(); err != nil {
+	reflection.Register(s)
+	if err := s.Serve(lis); err != nil {
 		fmt.Println(err)
 	}
+
+	//service := micro.NewService(
+	//	micro.Name("crmService"),
+	//)
+	//service.Init()
+	//crm_api.RegisterCRMServiceHandler(service.Server(), crmService)
+	//
+	//if err := service.Run(); err != nil {
+	//	fmt.Println(err)
+	//}
 }
