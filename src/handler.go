@@ -10,6 +10,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"time"
 	"errors"
+	"github.com/tangxuyao/mongo"
 )
 
 const (
@@ -62,7 +63,7 @@ func (s *CRMService) Signup(c context.Context, in *crm_api.SignupReq, out *crm_a
 	out.Token = id.Hex()
 
 	now := time.Now()
-	player := &Player{
+	player := &mongo.Player{
 		ID:         id,
 		DisplayID:  out.ID,
 		Token:      id.Hex(),
@@ -92,7 +93,7 @@ func (s *CRMService) BindPhone(c context.Context, in *crm_api.BindPhoneReq, out 
 
 func (s *CRMService) MakeActor(c context.Context, in *crm_api.MakeActorReq, out *crm_api.MakeActorRsp) error {
 	playerCol := s.mgo.DB(CRM_DB).C(PlayerCOL)
-	player := Player{}
+	player := mongo.Player{}
 	err := playerCol.Find(bson.M{"token": in.Token}).One(&player)
 	if err != nil {
 		return err
@@ -105,7 +106,7 @@ func (s *CRMService) MakeActor(c context.Context, in *crm_api.MakeActorReq, out 
 		return errors.New("不允许创建超过1个角色")
 	}
 
-	actor := Charactor{PlayerToken: in.Token, Name: in.Name, HP: 5, Energy: 0, EnergyType: 0}
+	actor := mongo.Charactor{PlayerToken: in.Token, Name: in.Name, HP: 5, Energy: 0, EnergyType: 0}
 	actorCOL.Insert(&actor)
 
 	fmt.Printf("创建新角色%s, 属于玩家%s(%s)\n", in.Name, player.DisplayID, player.Token)
