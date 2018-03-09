@@ -1,15 +1,16 @@
 syntax = "proto3";
 
 service CRMService {
-    rpc Signup (SignupReq) returns (SignupResponse) {
+    rpc Signup (EmptyReq) returns (SignupResponse) {
     };
-    rpc BindPhone (BindPhoneReq) returns (BindPhoneResponse) {
-    };
-    rpc MakeActor (MakeActorReq) returns (MakeActorRsp) {
+    rpc BindPhone (BindPhoneReq) returns (BindPhoneRsp) {
     };
 }
 
-message SignupReq {
+message EmptyReq {
+}
+
+message EmptyRsp {
 
 }
 
@@ -18,19 +19,8 @@ message SignupResponse {
     string token = 2;
 }
 
-
 message BindPhoneReq {
-
 }
 
-message BindPhoneResponse {
-
-}
-
-message MakeActorReq {
-    string token = 1;
-    string name = 2;
-}
-
-message MakeActorRsp {
+message BindPhoneRsp {
 }
