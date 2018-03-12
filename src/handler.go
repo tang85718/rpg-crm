@@ -9,7 +9,6 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"time"
-	"errors"
 	"github.com/tangxuyao/mongo"
 )
 
@@ -50,7 +49,7 @@ func (s *CRMService) Init(consulURL string, mgoUrl string) {
 	fmt.Println("[CRM] 连接 mongo 成功")
 }
 
-func (s *CRMService) Signup(c context.Context, in *crm_api.SignupReq, out *crm_api.SignupResponse) error {
+func (s *CRMService) Signup(c context.Context, in *crm_api.EmptyReq, out *crm_api.SignupResponse) error {
 	id := bson.NewObjectId()
 
 	out.ID = strconv.FormatInt(s.pIndex, 10)
@@ -81,7 +80,7 @@ func (s *CRMService) Signup(c context.Context, in *crm_api.SignupReq, out *crm_a
 	return nil
 }
 
-func (s *CRMService) BindPhone(c context.Context, in *crm_api.BindPhoneReq, out *crm_api.BindPhoneResponse) error {
+func (s *CRMService) BindPhone(c context.Context, in *crm_api.BindPhoneReq, out *crm_api.BindPhoneRsp) error {
 	return nil
 }
 
