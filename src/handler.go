@@ -7,9 +7,10 @@ import (
 	consul "github.com/hashicorp/consul/api"
 	"strconv"
 	"gopkg.in/mgo.v2"
+	"../../MongoData"
 	"gopkg.in/mgo.v2/bson"
 	"time"
-	"github.com/tangxuyao/mongo"
+	"log"
 )
 
 type CRMService struct {
@@ -49,7 +50,7 @@ func (s *CRMService) Init(consulURL string, mgoUrl string) {
 	fmt.Println("[CRM] 连接 mongo 成功")
 }
 
-func (s *CRMService) Signup(c context.Context, in *crm_api.EmptyReq, out *crm_api.SignupResponse) error {
+func (s *CRMService) Signup(c context.Context, in *crm_api.SignupReq, out *crm_api.SignupRsp) error {
 	id := bson.NewObjectId()
 
 	out.ID = strconv.FormatInt(s.pIndex, 10)
@@ -59,12 +60,11 @@ func (s *CRMService) Signup(c context.Context, in *crm_api.EmptyReq, out *crm_ap
 	player := &mongo.Player{
 		ID:         id,
 		DisplayID:  out.ID,
-		Token:      id.Hex(),
 		CreateTime: now,
 		UpdateTime: now,
 	}
 
-	mc := s.mgo.DB(mongo.DB_ROOT).C(mongo.C_PLAYER)
+	mc := s.mgo.DB(mongo.DB_GLOBAL).C(mongo.C_PLAYER)
 	err := mc.Insert(player)
 	if err != nil {
 		return err
@@ -76,7 +76,8 @@ func (s *CRMService) Signup(c context.Context, in *crm_api.EmptyReq, out *crm_ap
 	d := &consul.KVPair{Key: "rpg/latestID", Value: []byte(newUID)}
 	s.kv.Put(d, nil)
 
-	//todo: create elastic diary
+	log.Printf("创建Player: %s - %s\n", id.String(), id.Hex())
+
 	return nil
 }
 
@@ -84,4 +85,6 @@ func (s *CRMService) BindPhone(c context.Context, in *crm_api.BindPhoneReq, out 
 	return nil
 }
 
-
+func (s *CRMService) CRMPing(c context.Context, in *crm_api.CRMPingReq, out *crm_api.CRMPingRsp) error {
+	return nil
+}
